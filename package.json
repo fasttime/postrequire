@@ -1,0 +1,37 @@
+{
+  "name": "subrequire",
+  "version": "0.0.0",
+  "description": "(Re)runs initialization code contained in a Node.js module.",
+  "keywords": [
+    "node",
+    "nodejs",
+    "require"
+  ],
+  "homepage": "https://github.com/fasttime/subrequire",
+  "bugs": "https://github.com/fasttime/subrequire/issues",
+  "license": "ISC",
+  "author": "Francesco Trotta <ft@fasttime.org> (https://github.com/fasttime)",
+  "files": [
+    "*.d.ts"
+  ],
+  "main": "subrequire.js",
+  "types": "subrequire.d.ts",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fasttime/subrequire.git"
+  },
+  "scripts": {
+    "build": "npm install && gulp",
+    "test": "mocha test/**/*.spec.js"
+  },
+  "devDependencies": {
+    "del": "~4.1.1",
+    "gulp": "~4.0.2",
+    "gulp-fasttime-lint": "~0.10.1",
+    "mocha": "~3.5.3",
+    "nyc": "~14.1.1"
+  }
+}
