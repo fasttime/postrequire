@@ -16,5 +16,26 @@ var obj1 = subrequire("./my-module");
 var obj2 = subrequire("./my-module"); // Rerunning initialization code.
 ```
 
+## Other similar software
+
+### [proxyquire](https://github.com/thlorenz/proxyquire)
+
+* Adds new modules to the children list of the parent module.
+* Creates new objects when required multiple times in the same module, i.e.
+  `require("proxyquire") !== require("proxyquire")` always.
+* Always needs second parameter `stubs`.
+
+### [rewire](https://github.com/jhnns/rewire)
+
+* Adds new modules to the children list of the parent module.
+* Creates new objects when required multiple times in the same module, i.e.
+  `require("rewire") !== require("rewire")` always.
+
+### [Stealthy-Require](https://github.com/analog-nico/stealthy-require)
+
+* Transitively reloads all modules required by another module at load time.
+* Adds new modules to the children list of the parent module.
+* Complicated usage.
+
 [npm badge]: https://badge.fury.io/js/subrequire.svg
 [npm url]: https://www.npmjs.com/package/subrequire
