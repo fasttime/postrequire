@@ -6,15 +6,15 @@ var assert = require('assert');
 
 describe
 (
-    'subrequire',
+    'postrequire',
     function ()
     {
-        var PROXYQUIRE_PATH = '..';
+        var POSTREQUIRE_PATH = '..';
         var SOME_MODULE = './dummy';
 
-        function callSubrequire(subrequire, id)
+        function callPostrequire(postrequire, id)
         {
-            var exports = subrequire(id);
+            var exports = postrequire(id);
             return exports;
         }
 
@@ -54,21 +54,21 @@ describe
             'loads correctly',
             function ()
             {
-                var subrequireId = require.resolve(PROXYQUIRE_PATH);
-                var subrequire = require(PROXYQUIRE_PATH);
+                var postrequireId = require.resolve(POSTREQUIRE_PATH);
+                var postrequire = require(POSTREQUIRE_PATH);
 
-                assert(!(subrequireId in require.cache));
+                assert(!(postrequireId in require.cache));
                 assert.strictEqual(module.children.length, 1);
-                var subrequireModule = module.children[0];
-                assert.strictEqual(subrequireModule.id, subrequireId);
+                var postrequireModule = module.children[0];
+                assert.strictEqual(postrequireModule.id, postrequireId);
 
                 require(SOME_MODULE);
-                var subrequire2 = require(PROXYQUIRE_PATH);
+                var postrequire2 = require(POSTREQUIRE_PATH);
 
-                assert(!(subrequireId in require.cache));
+                assert(!(postrequireId in require.cache));
                 assert.strictEqual(module.children.length, 2);
-                assert.strictEqual(module.children[0], subrequireModule);
-                assert.strictEqual(subrequire2, subrequire);
+                assert.strictEqual(module.children[0], postrequireModule);
+                assert.strictEqual(postrequire2, postrequire);
             }
         );
 
@@ -78,8 +78,8 @@ describe
             function ()
             {
                 var testId = require.resolve('./test');
-                var subrequire = require(PROXYQUIRE_PATH);
-                var test = callSubrequire(subrequire, './test');
+                var postrequire = require(POSTREQUIRE_PATH);
+                var test = callPostrequire(postrequire, './test');
 
                 assert(!(testId in require.cache));
                 assert.strictEqual(module.children.length, 1);
@@ -93,11 +93,11 @@ describe
             function ()
             {
                 var testId = require.resolve('./test');
-                var subrequire = require(PROXYQUIRE_PATH);
+                var postrequire = require(POSTREQUIRE_PATH);
                 var test = require('./test');
                 var testModule = require.cache[testId];
                 require(SOME_MODULE);
-                var test2 = callSubrequire(subrequire, './test');
+                var test2 = callPostrequire(postrequire, './test');
 
                 assert.strictEqual(require.cache[testId], testModule);
                 assert.strictEqual(module.children.length, 3);
@@ -113,10 +113,10 @@ describe
             function ()
             {
                 var testId = require.resolve('./test');
-                var subrequire = require(PROXYQUIRE_PATH);
+                var postrequire = require(POSTREQUIRE_PATH);
                 var test = require('./load-test');
                 var testModule = require.cache[testId];
-                var test2 = callSubrequire(subrequire, './test');
+                var test2 = callPostrequire(postrequire, './test');
 
                 assert.strictEqual(require.cache[testId], testModule);
                 assert.strictEqual(module.children.length, 2);
@@ -130,16 +130,16 @@ describe
             'loads itself',
             function ()
             {
-                var subrequireId = require.resolve(PROXYQUIRE_PATH);
-                var subrequire = require(PROXYQUIRE_PATH);
-                var subrequireModule = module.children[0];
+                var postrequireId = require.resolve(POSTREQUIRE_PATH);
+                var postrequire = require(POSTREQUIRE_PATH);
+                var postrequireModule = module.children[0];
                 require(SOME_MODULE);
-                var subrequire2 = callSubrequire(subrequire, PROXYQUIRE_PATH);
+                var postrequire2 = callPostrequire(postrequire, POSTREQUIRE_PATH);
 
-                assert(!(subrequireId in require.cache));
+                assert(!(postrequireId in require.cache));
                 assert.strictEqual(module.children.length, 2);
-                assert.strictEqual(module.children[0], subrequireModule);
-                assert.notStrictEqual(subrequire2, subrequire);
+                assert.strictEqual(module.children[0], postrequireModule);
+                assert.notStrictEqual(postrequire2, postrequire);
             }
         );
 
@@ -148,11 +148,11 @@ describe
             'throws on non-string argument',
             function ()
             {
-                var subrequire = require(PROXYQUIRE_PATH);
+                var postrequire = require(POSTREQUIRE_PATH);
 
                 assert.throws
                 (
-                    subrequire.bind(null),
+                    postrequire.bind(null),
                     function (error)
                     {
                         assert(error instanceof TypeError);
@@ -168,11 +168,11 @@ describe
             'throws on empty string argument',
             function ()
             {
-                var subrequire = require(PROXYQUIRE_PATH);
+                var postrequire = require(POSTREQUIRE_PATH);
 
                 assert.throws
                 (
-                    subrequire.bind(null, ''),
+                    postrequire.bind(null, ''),
                     function (error)
                     {
                         assert(error instanceof TypeError);
@@ -188,9 +188,9 @@ describe
             'throws on nonexistent module',
             function ()
             {
-                var subrequire = require(PROXYQUIRE_PATH);
+                var postrequire = require(POSTREQUIRE_PATH);
 
-                assert.throws(subrequire.bind(null, '?'), /\bCannot find module '\?'/);
+                assert.throws(postrequire.bind(null, '?'), /\bCannot find module '\?'/);
             }
         );
 
@@ -200,9 +200,9 @@ describe
             function ()
             {
                 var throwId = require.resolve('./throw');
-                var subrequire = require(PROXYQUIRE_PATH);
+                var postrequire = require(POSTREQUIRE_PATH);
 
-                assert.throws(subrequire.bind(null, './throw'), /\bTEST\b/);
+                assert.throws(postrequire.bind(null, './throw'), /\bTEST\b/);
                 assert(!(throwId in require.cache));
                 assert.strictEqual(module.children.length, 1);
             }

@@ -11,6 +11,6 @@
  *
  * The exported module contents.
  */
-declare function subrequire(id: string): any;
+declare function postrequire(id: string): any;
 
-export = subrequire;
+export = postrequire;

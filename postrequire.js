@@ -2,7 +2,7 @@
 
 var parentModule = module.parent;
 
-function subrequire(id)
+function postrequire(id)
 {
     if (typeof id !== 'string' || !id)
         throw TypeError('Argument must be a non-empty string');
@@ -50,13 +50,13 @@ function subrequire(id)
     var id = module.id;
     delete require.cache[id];
     var childModules = parentModule !== undefined ? parentModule.children : [];
-    var subrequireModule = findChildModuleById();
-    if (subrequireModule)
+    var postrequireModule = findChildModuleById();
+    if (postrequireModule)
     {
-        module.exports = subrequireModule.exports;
+        module.exports = postrequireModule.exports;
         removeChildModule();
     }
     else
-        module.exports = subrequire;
+        module.exports = postrequire;
 }
 )();

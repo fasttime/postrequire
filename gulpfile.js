@@ -24,7 +24,7 @@ task
         lint
         (
             {
-                src: ['subrequire.js', 'test/**/*.js'],
+                src: ['postrequire.js', 'test/**/*.js'],
                 envs: 'node',
             },
             {
