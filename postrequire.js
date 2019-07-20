@@ -49,7 +49,10 @@ function postrequire(id)
 
     var id = module.id;
     delete require.cache[id];
-    var childModules = parentModule !== undefined ? parentModule.children : [];
+    if (parentModule !== undefined)
+        var childModules = parentModule.children;
+    if (childModules === undefined)
+        childModules = [];
     var postrequireModule = findChildModuleById();
     if (postrequireModule)
     {

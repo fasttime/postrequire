@@ -30,7 +30,7 @@
   "devDependencies": {
     "del": "~5.0.0",
     "gulp": "~4.0.2",
-    "gulp-fasttime-lint": "~0.11.1",
+    "gulp-fasttime-lint": "~0.12.0",
     "mocha": "~3.5.3",
     "nyc": "~14.1.1"
   }
