@@ -1,6 +1,6 @@
 {
   "name": "postrequire",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "(Re)runs initialization code contained in a Node.js module.",
   "keywords": [
     "node",

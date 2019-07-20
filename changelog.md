@@ -1,3 +1,8 @@
+<a name="0.1.1"></a>
+## [0.1.1](https://github.com/fasttime/postrequire/releases/tag/0.1.1) (2019-07-20)
+
+* Fixed an issue with `module.children` not being set in Node.js < 4.
+
 <a name="0.1.0"></a>
 ## [0.1.0](https://github.com/fasttime/postrequire/releases/tag/0.1.0) (2019-07-06)
 
