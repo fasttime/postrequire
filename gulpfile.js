@@ -24,8 +24,9 @@ task
         lint
         (
             {
-                src: ['postrequire.js', 'test/**/*.js'],
+                src: ['postrequire.{js,d.ts}', 'test/**/*.js'],
                 envs: 'node',
+                parserOptions: { project: 'tsconfig.json' },
             },
             {
                 src: 'gulpfile.js',
