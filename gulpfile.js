@@ -7,9 +7,11 @@ task
     'clean',
     async () =>
     {
-        const del = require('del');
+        const { promises: { rmdir } } = require('fs');
 
-        await del(['.nyc_output', 'coverage']);
+        const paths = ['.nyc_output', 'coverage'];
+        const options = { recursive: true };
+        await Promise.all(paths.map(path => rmdir(path, options)));
     },
 );
 
@@ -18,7 +20,7 @@ task
     'lint',
     () =>
     {
-        const lint = require('gulp-fasttime-lint');
+        const lint = require('@fasttime/gulp-lint');
 
         const stream =
         lint
