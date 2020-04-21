@@ -10,11 +10,11 @@ describe
     function ()
     {
         var POSTREQUIRE_PATH = '..';
-        var SOME_MODULE = './dummy';
+        var SOME_MODULE = './modules/dummy';
 
-        function callPostrequire(postrequire, id)
+        function callPostrequire(postrequire, id, stubs)
         {
-            var exports = postrequire(id);
+            var exports = postrequire(id, stubs);
             return exports;
         }
 
@@ -74,16 +74,19 @@ describe
 
         it
         (
-            'loads a new module',
+            '(re)loads a new module',
             function ()
             {
-                var testId = require.resolve('./test');
+                var testId = require.resolve('./modules/test');
                 var postrequire = require(POSTREQUIRE_PATH);
-                var test = callPostrequire(postrequire, './test');
+                var test  = callPostrequire(postrequire, './modules/test');
+                var test2 = callPostrequire(postrequire, './modules/test');
 
                 assert(!(testId in require.cache));
                 assert.strictEqual(module.children.length, 1);
+                assert.notStrictEqual(test2, test);
                 assert.deepEqual(test, { });
+                assert.deepEqual(test2, { });
             }
         );
 
@@ -92,12 +95,12 @@ describe
             'loads a module already required in the same parent',
             function ()
             {
-                var testId = require.resolve('./test');
+                var testId = require.resolve('./modules/test');
                 var postrequire = require(POSTREQUIRE_PATH);
-                var test = require('./test');
+                var test = require('./modules/test');
                 var testModule = require.cache[testId];
                 require(SOME_MODULE);
-                var test2 = callPostrequire(postrequire, './test');
+                var test2 = callPostrequire(postrequire, './modules/test');
 
                 assert.strictEqual(require.cache[testId], testModule);
                 assert.strictEqual(module.children.length, 3);
@@ -112,11 +115,11 @@ describe
             'loads a module already required in a different parent',
             function ()
             {
-                var testId = require.resolve('./test');
+                var testId = require.resolve('./modules/test');
                 var postrequire = require(POSTREQUIRE_PATH);
-                var test = require('./load-test');
+                var test = require('./modules/load-test');
                 var testModule = require.cache[testId];
-                var test2 = callPostrequire(postrequire, './test');
+                var test2 = callPostrequire(postrequire, './modules/test');
 
                 assert.strictEqual(require.cache[testId], testModule);
                 assert.strictEqual(module.children.length, 2);
@@ -145,6 +148,198 @@ describe
 
         it
         (
+            'loads a non-module',
+            function ()
+            {
+                var testId = require.resolve('./modules/non-module');
+                var postrequire = require(POSTREQUIRE_PATH);
+                var test = callPostrequire(postrequire, './modules/non-module.json');
+
+                assert(!(testId in require.cache));
+                assert.strictEqual(module.children.length, 1);
+                assert.deepEqual(test, { foo: 'bar' });
+            }
+        );
+
+        it
+        (
+            'stubs exports',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var exports = { };
+                callPostrequire(postrequire, './modules/export-stubs', { exports: exports });
+
+                assert.strictEqual(exports.exports, exports);
+                assert.strictEqual(typeof exports.require, 'function');
+                assert.strictEqual(typeof exports.module, 'object');
+                assert.strictEqual(typeof exports.__filename, 'string');
+                assert.strictEqual(typeof exports.__dirname, 'string');
+            }
+        );
+
+        it
+        (
+            'stubs require',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var actual =
+                callPostrequire(postrequire, './modules/export-stubs', { require: 'foo' });
+
+                assert.strictEqual(actual.exports, actual);
+                assert.strictEqual(actual.require, 'foo');
+                assert.strictEqual(typeof actual.module, 'object');
+                assert.strictEqual(typeof actual.__filename, 'string');
+                assert.strictEqual(typeof actual.__dirname, 'string');
+            }
+        );
+
+        it
+        (
+            'stubs module',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var actual = callPostrequire(postrequire, './modules/export-stubs', { module: 42 });
+
+                assert.strictEqual(actual.exports, actual);
+                assert.strictEqual(typeof actual.require, 'function');
+                assert.strictEqual(actual.module, 42);
+                assert.strictEqual(typeof actual.__filename, 'string');
+                assert.strictEqual(typeof actual.__dirname, 'string');
+            }
+        );
+
+        it
+        (
+            'stubs __filename',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var actual =
+                callPostrequire(postrequire, './modules/export-stubs', { __filename: 'bar' });
+
+                assert.strictEqual(actual.exports, actual);
+                assert.strictEqual(typeof actual.require, 'function');
+                assert.strictEqual(typeof actual.module, 'object');
+                assert.strictEqual(actual.__filename, 'bar');
+                assert.strictEqual(typeof actual.__dirname, 'string');
+            }
+        );
+
+        it
+        (
+            'stubs __dirname',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var actual =
+                callPostrequire(postrequire, './modules/export-stubs', { __dirname: 'baz' });
+
+                assert.strictEqual(actual.exports, actual);
+                assert.strictEqual(typeof actual.require, 'function');
+                assert.strictEqual(typeof actual.module, 'object');
+                assert.strictEqual(typeof actual.__filename, 'string');
+                assert.strictEqual(actual.__dirname, 'baz');
+            }
+        );
+
+        it
+        (
+            '(re)stubs all stubs',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var exports1 = { };
+                var stubs1 =
+                {
+                    exports:    exports1,
+                    require:    true,
+                    module:     42,
+                    __filename: 'a',
+                    __dirname:  'b',
+                };
+                callPostrequire(postrequire, './modules/export-stubs', stubs1);
+                var exports2 = { };
+                var stubs2 =
+                {
+                    exports:    exports2,
+                    require:    undefined,
+                    module:     undefined,
+                    __filename: undefined,
+                    __dirname:  undefined,
+                };
+                callPostrequire(postrequire, './modules/export-stubs', stubs2);
+
+                var argName;
+                for (argName in stubs1)
+                    assert.deepEqual(exports1[argName], stubs1[argName]);
+                for (argName in stubs2)
+                    assert.deepEqual(exports2[argName], stubs2[argName]);
+            }
+        );
+
+        it
+        (
+            'does not prevent a module from overwriting call and apply',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+
+                var _Function_prototype = Function.prototype;
+                var call = _Function_prototype.call;
+                var apply = _Function_prototype.apply;
+                try
+                {
+                    postrequire('./modules/overwrite-call-and-apply', { exports: { } });
+
+                    assert.strictEqual(_Function_prototype.call, 'foo');
+                    assert.strictEqual(_Function_prototype.apply, 'bar');
+                }
+                finally
+                {
+                    _Function_prototype.call = call;
+                    _Function_prototype.apply = apply;
+                }
+            }
+        );
+
+        it
+        (
+            'restores call and apply hooks before initializing a module',
+            function ()
+            {
+                var _Function_prototype = Function.prototype;
+                var call = _Function_prototype.call;
+                var apply = _Function_prototype.apply;
+                var postrequire = require(POSTREQUIRE_PATH);
+                var exports = { };
+                callPostrequire(postrequire, './modules/export-stubs', { exports: exports });
+
+                assert.strictEqual(exports.call, call);
+                assert.strictEqual(exports.apply, apply);
+            }
+        );
+
+        it
+        (
+            'restores call and apply hooks when loading a non-module',
+            function ()
+            {
+                var _Function_prototype = Function.prototype;
+                var call = _Function_prototype.call;
+                var apply = _Function_prototype.apply;
+                var postrequire = require(POSTREQUIRE_PATH);
+                callPostrequire(postrequire, './modules/non-module.json', { exports: null });
+
+                assert.strictEqual(_Function_prototype.call, call);
+                assert.strictEqual(_Function_prototype.apply, apply);
+            }
+        );
+
+        it
+        (
             'throws on non-string argument',
             function ()
             {
@@ -156,7 +351,8 @@ describe
                     function (error)
                     {
                         assert(error instanceof TypeError);
-                        assert.strictEqual(error.message, 'Argument must be a non-empty string');
+                        assert.strictEqual
+                        (error.message, 'First argument must be a non-empty string');
                         return true;
                     }
                 );
@@ -176,7 +372,8 @@ describe
                     function (error)
                     {
                         assert(error instanceof TypeError);
-                        assert.strictEqual(error.message, 'Argument must be a non-empty string');
+                        assert.strictEqual
+                        (error.message, 'First argument must be a non-empty string');
                         return true;
                     }
                 );
@@ -199,12 +396,33 @@ describe
             'throws on failing module',
             function ()
             {
-                var throwId = require.resolve('./throw');
+                var throwId = require.resolve('./modules/throw');
                 var postrequire = require(POSTREQUIRE_PATH);
 
-                assert.throws(postrequire.bind(null, './throw'), /\bTEST\b/);
+                assert.throws(postrequire.bind(null, './modules/throw'), /\bTEST\b/);
                 assert(!(throwId in require.cache));
                 assert.strictEqual(module.children.length, 1);
+            }
+        );
+
+        it
+        (
+            'throws on invalid stubs argument',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+
+                assert.throws
+                (
+                    postrequire.bind(null, './modules/test', 'foobar'),
+                    function (error)
+                    {
+                        assert(error instanceof TypeError);
+                        assert.strictEqual
+                        (error.message, 'Second argument must be an object, undefined or null');
+                        return true;
+                    }
+                );
             }
         );
     }
