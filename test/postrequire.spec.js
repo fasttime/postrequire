@@ -313,7 +313,6 @@ describe
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
-
                 var _Function_prototype = Function.prototype;
                 var call = _Function_prototype.call;
                 var apply = _Function_prototype.apply;
@@ -337,11 +336,11 @@ describe
             'restores call and apply hooks before initializing a module',
             function ()
             {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var exports = { };
                 var _Function_prototype = Function.prototype;
                 var call = _Function_prototype.call;
                 var apply = _Function_prototype.apply;
-                var postrequire = require(POSTREQUIRE_PATH);
-                var exports = { };
                 callPostrequire(postrequire, './modules/export-stubs', { exports: exports });
 
                 assert.strictEqual(exports.call, call);
@@ -354,14 +353,100 @@ describe
             'restores call and apply hooks when loading a non-module',
             function ()
             {
+                var postrequire = require(POSTREQUIRE_PATH);
                 var _Function_prototype = Function.prototype;
                 var call = _Function_prototype.call;
                 var apply = _Function_prototype.apply;
-                var postrequire = require(POSTREQUIRE_PATH);
                 callPostrequire(postrequire, './modules/non-module.json', { this: null });
 
                 assert.strictEqual(_Function_prototype.call, call);
                 assert.strictEqual(_Function_prototype.apply, apply);
+            }
+        );
+
+        it
+        (
+            'provides a consistent temporary replacement for call',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var _Array_prototype_slice_call =
+                Function.prototype.call.bind(Array.prototype.slice);
+                var _extensions = module.constructor._extensions;
+                var originalExtensionsJS = _extensions['.js'];
+                var actualReturnValue;
+                var actualThis;
+                var actualArgs;
+                var expectedReturnValue = 'A';
+                var expectedThis = 'B';
+                var expectedArgs = ['C', 'D'];
+                _extensions['.js'] =
+                function (module, filename)
+                {
+                    var fn =
+                    function ()
+                    {
+                        actualThis = this;
+                        actualArgs = _Array_prototype_slice_call(arguments);
+                        return expectedReturnValue;
+                    };
+                    actualReturnValue = fn.call(expectedThis, expectedArgs[0], expectedArgs[1]);
+                    originalExtensionsJS(module, filename);
+                };
+                try
+                {
+                    callPostrequire(postrequire, './modules/test.js', { this: null });
+                }
+                finally
+                {
+                    _extensions['.js'] = originalExtensionsJS;
+                }
+                assert.strictEqual(actualReturnValue, expectedReturnValue);
+                assert.strictEqual(actualThis, expectedThis);
+                assert.deepEqual(actualArgs, expectedArgs);
+            }
+        );
+
+        it
+        (
+            'provides a consistent temporary replacement for apply',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var _Array_prototype_slice_call =
+                Function.prototype.call.bind(Array.prototype.slice);
+                var _extensions = module.constructor._extensions;
+                var originalExtensionsJS = _extensions['.js'];
+                var actualReturnValue;
+                var actualThis;
+                var actualArgs;
+                var expectedReturnValue = 'A';
+                var expectedThis = 'B';
+                var expectedArgs = ['C', 'D'];
+                _extensions['.js'] =
+                function (module, filename)
+                {
+                    var fn =
+                    function ()
+                    {
+                        actualThis = this;
+                        actualArgs = _Array_prototype_slice_call(arguments);
+                        return expectedReturnValue;
+                    };
+                    actualReturnValue = fn.apply(expectedThis, expectedArgs);
+                    originalExtensionsJS(module, filename);
+                };
+                try
+                {
+                    callPostrequire(postrequire, './modules/test.js', { this: null });
+                }
+                finally
+                {
+                    _extensions['.js'] = originalExtensionsJS;
+                }
+                assert.strictEqual(actualReturnValue, expectedReturnValue);
+                assert.strictEqual(actualThis, expectedThis);
+                assert.deepEqual(actualArgs, expectedArgs);
             }
         );
 
