@@ -1,9 +1,9 @@
 'use strict';
 
-var _Array_prototype_slice_call;
-var _Function_prototype_apply_call;
+var _Array_prototype_push_apply;
+var _Function_prototype_call_apply;
 
-var CJS_VAR_NAMES = ['exports', 'require', 'module', '__filename', '__dirname'];
+var CJS_VAR_NAMES = ['this', 'exports', 'require', 'module', '__filename', '__dirname'];
 
 var parentModule = module.parent;
 
@@ -36,8 +36,8 @@ function postrequire(id, stubs)
         var prototype = Function.prototype;
         var apply = prototype.apply;
         var call = prototype.call;
-        var doApply =
-        function (fn, thisArg, args)
+        var applyCall =
+        function (fn, args)
         {
             if (fn.length === 5 && fn.name === '')
             {
@@ -52,20 +52,21 @@ function postrequire(id, stubs)
                     }
                 );
             }
-            var returnValue = _Function_prototype_apply_call(fn, thisArg, args);
+            var returnValue = _Function_prototype_call_apply(fn, args);
             return returnValue;
         };
         prototype.apply =
         function (thisArg, args)
         {
-            var returnValue = doApply(this, thisArg, args);
+            var applyCallArgs = [thisArg];
+            _Array_prototype_push_apply(applyCallArgs, args);
+            var returnValue = applyCall(this, applyCallArgs);
             return returnValue;
         };
         prototype.call =
-        function (thisArg)
+        function ()
         {
-            var args = _Array_prototype_slice_call(arguments, 1);
-            var returnValue = doApply(this, thisArg, args);
+            var returnValue = applyCall(this, arguments);
             return returnValue;
         };
     }
@@ -110,9 +111,9 @@ function postrequire(id, stubs)
     }
 
     var _Function_prototype = Function.prototype;
-    var _Function_prototype_call = _Function_prototype.call;
-    _Array_prototype_slice_call = _Function_prototype_call.bind(Array.prototype.slice);
-    _Function_prototype_apply_call = _Function_prototype_call.bind(_Function_prototype.apply);
+    var _Function_prototype_apply = _Function_prototype.apply;
+    _Array_prototype_push_apply = _Function_prototype_apply.bind(Array.prototype.push);
+    _Function_prototype_call_apply = _Function_prototype_apply.bind(_Function_prototype.call);
 
     var id = module.id;
     delete require.cache[id];

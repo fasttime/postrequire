@@ -1,5 +1,6 @@
 'use strict';
 
+exports.this        = this;
 exports.exports     = exports;
 exports.module      = module;
 exports.require     = require;

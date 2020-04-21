@@ -1,5 +1,6 @@
 declare interface PostrequireStubs
 {
+    this?:          any;
     exports?:       any;
     require?:       any;
     module?:        any;

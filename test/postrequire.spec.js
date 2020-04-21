@@ -163,13 +163,33 @@ describe
 
         it
         (
+            'stubs this',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var returnValue =
+                callPostrequire(postrequire, './modules/export-stubs', { this: Infinity });
+
+                assert.strictEqual(returnValue.this, Infinity);
+                assert.strictEqual(returnValue.exports, returnValue);
+                assert.strictEqual(typeof returnValue.require, 'function');
+                assert.strictEqual(typeof returnValue.module, 'object');
+                assert.strictEqual(typeof returnValue.__filename, 'string');
+                assert.strictEqual(typeof returnValue.__dirname, 'string');
+            }
+        );
+
+        it
+        (
             'stubs exports',
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
                 var exports = { };
+                var returnValue =
                 callPostrequire(postrequire, './modules/export-stubs', { exports: exports });
 
+                assert.strictEqual(exports.this, returnValue);
                 assert.strictEqual(exports.exports, exports);
                 assert.strictEqual(typeof exports.require, 'function');
                 assert.strictEqual(typeof exports.module, 'object');
@@ -184,14 +204,15 @@ describe
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
-                var actual =
+                var returnValue =
                 callPostrequire(postrequire, './modules/export-stubs', { require: 'foo' });
 
-                assert.strictEqual(actual.exports, actual);
-                assert.strictEqual(actual.require, 'foo');
-                assert.strictEqual(typeof actual.module, 'object');
-                assert.strictEqual(typeof actual.__filename, 'string');
-                assert.strictEqual(typeof actual.__dirname, 'string');
+                assert.strictEqual(returnValue.this, returnValue);
+                assert.strictEqual(returnValue.exports, returnValue);
+                assert.strictEqual(returnValue.require, 'foo');
+                assert.strictEqual(typeof returnValue.module, 'object');
+                assert.strictEqual(typeof returnValue.__filename, 'string');
+                assert.strictEqual(typeof returnValue.__dirname, 'string');
             }
         );
 
@@ -201,13 +222,15 @@ describe
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
-                var actual = callPostrequire(postrequire, './modules/export-stubs', { module: 42 });
+                var returnValue =
+                callPostrequire(postrequire, './modules/export-stubs', { module: 42 });
 
-                assert.strictEqual(actual.exports, actual);
-                assert.strictEqual(typeof actual.require, 'function');
-                assert.strictEqual(actual.module, 42);
-                assert.strictEqual(typeof actual.__filename, 'string');
-                assert.strictEqual(typeof actual.__dirname, 'string');
+                assert.strictEqual(returnValue.this, returnValue);
+                assert.strictEqual(returnValue.exports, returnValue);
+                assert.strictEqual(typeof returnValue.require, 'function');
+                assert.strictEqual(returnValue.module, 42);
+                assert.strictEqual(typeof returnValue.__filename, 'string');
+                assert.strictEqual(typeof returnValue.__dirname, 'string');
             }
         );
 
@@ -217,14 +240,15 @@ describe
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
-                var actual =
+                var returnValue =
                 callPostrequire(postrequire, './modules/export-stubs', { __filename: 'bar' });
 
-                assert.strictEqual(actual.exports, actual);
-                assert.strictEqual(typeof actual.require, 'function');
-                assert.strictEqual(typeof actual.module, 'object');
-                assert.strictEqual(actual.__filename, 'bar');
-                assert.strictEqual(typeof actual.__dirname, 'string');
+                assert.strictEqual(returnValue.this, returnValue);
+                assert.strictEqual(returnValue.exports, returnValue);
+                assert.strictEqual(typeof returnValue.require, 'function');
+                assert.strictEqual(typeof returnValue.module, 'object');
+                assert.strictEqual(returnValue.__filename, 'bar');
+                assert.strictEqual(typeof returnValue.__dirname, 'string');
             }
         );
 
@@ -234,14 +258,15 @@ describe
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
-                var actual =
+                var returnValue =
                 callPostrequire(postrequire, './modules/export-stubs', { __dirname: 'baz' });
 
-                assert.strictEqual(actual.exports, actual);
-                assert.strictEqual(typeof actual.require, 'function');
-                assert.strictEqual(typeof actual.module, 'object');
-                assert.strictEqual(typeof actual.__filename, 'string');
-                assert.strictEqual(actual.__dirname, 'baz');
+                assert.strictEqual(returnValue.this, returnValue);
+                assert.strictEqual(returnValue.exports, returnValue);
+                assert.strictEqual(typeof returnValue.require, 'function');
+                assert.strictEqual(typeof returnValue.module, 'object');
+                assert.strictEqual(typeof returnValue.__filename, 'string');
+                assert.strictEqual(returnValue.__dirname, 'baz');
             }
         );
 
@@ -254,6 +279,7 @@ describe
                 var exports1 = { };
                 var stubs1 =
                 {
+                    this:       Math.PI,
                     exports:    exports1,
                     require:    true,
                     module:     42,
@@ -264,6 +290,7 @@ describe
                 var exports2 = { };
                 var stubs2 =
                 {
+                    this:       null,
                     exports:    exports2,
                     require:    undefined,
                     module:     undefined,
@@ -292,7 +319,7 @@ describe
                 var apply = _Function_prototype.apply;
                 try
                 {
-                    postrequire('./modules/overwrite-call-and-apply', { exports: { } });
+                    postrequire('./modules/overwrite-call-and-apply', { this: null });
 
                     assert.strictEqual(_Function_prototype.call, 'foo');
                     assert.strictEqual(_Function_prototype.apply, 'bar');
@@ -331,7 +358,7 @@ describe
                 var call = _Function_prototype.call;
                 var apply = _Function_prototype.apply;
                 var postrequire = require(POSTREQUIRE_PATH);
-                callPostrequire(postrequire, './modules/non-module.json', { exports: null });
+                callPostrequire(postrequire, './modules/non-module.json', { this: null });
 
                 assert.strictEqual(_Function_prototype.call, call);
                 assert.strictEqual(_Function_prototype.apply, apply);
