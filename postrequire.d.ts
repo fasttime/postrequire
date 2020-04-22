@@ -1,4 +1,4 @@
-declare interface PostrequireStubs
+export interface PostrequireStubs
 {
     this?:          any;
     exports?:       any;
@@ -21,6 +21,4 @@ declare interface PostrequireStubs
  *
  * The exported module contents.
  */
-declare function postrequire(id: string, stubs?: Readonly<PostrequireStubs>): any;
-
-export = postrequire;
+export default function postrequire(id: string, stubs?: Readonly<PostrequireStubs>): any;
