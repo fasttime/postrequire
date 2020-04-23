@@ -309,7 +309,7 @@ describe
 
         it
         (
-            'does not prevent a module from overwriting call and apply',
+            'does not prevent a module from overwriting Function.prototype methods',
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
@@ -333,7 +333,7 @@ describe
 
         it
         (
-            'restores call and apply hooks before initializing a module',
+            'restores Function.prototype hooks before initializing a module',
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
@@ -350,7 +350,7 @@ describe
 
         it
         (
-            'restores call and apply hooks when loading a non-module',
+            'restores Function.prototype hooks when loading a non-module',
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
@@ -364,89 +364,125 @@ describe
             }
         );
 
-        it
+        describe
         (
-            'provides a consistent temporary replacement for call',
+            'provides a consistent temporary replacement for',
             function ()
             {
-                var postrequire = require(POSTREQUIRE_PATH);
-                var _Array_prototype_slice_call =
-                Function.prototype.call.bind(Array.prototype.slice);
-                var _extensions = module.constructor._extensions;
-                var originalExtensionsJS = _extensions['.js'];
-                var actualReturnValue;
-                var actualThis;
-                var actualArgs;
-                var expectedReturnValue = 'A';
-                var expectedThis = 'B';
-                var expectedArgs = ['C', 'D'];
-                _extensions['.js'] =
-                function (module, filename)
+                function test(callbackCaller, expectedArgs)
                 {
-                    var fn =
-                    function ()
+                    var postrequire = require(POSTREQUIRE_PATH);
+                    var _Array_prototype_slice_call =
+                    Function.prototype.call.bind(Array.prototype.slice);
+                    var _extensions = module.constructor._extensions;
+                    var originalExtensionsJS = _extensions['.js'];
+                    var actualReturnValue;
+                    var actualThis;
+                    var actualArgs;
+                    _extensions['.js'] =
+                    function (module, filename)
                     {
-                        actualThis = this;
-                        actualArgs = _Array_prototype_slice_call(arguments);
-                        return expectedReturnValue;
+                        actualReturnValue =
+                        callbackCaller
+                        (
+                            function ()
+                            {
+                                actualThis = this;
+                                actualArgs = _Array_prototype_slice_call(arguments);
+                                return expectedReturnValue;
+                            }
+                        );
+                        originalExtensionsJS(module, filename);
                     };
-                    actualReturnValue = fn.call(expectedThis, expectedArgs[0], expectedArgs[1]);
-                    originalExtensionsJS(module, filename);
-                };
-                try
-                {
-                    callPostrequire(postrequire, './modules/test.js', { this: null });
+                    try
+                    {
+                        callPostrequire(postrequire, './modules/test.js', { this: null });
+                    }
+                    finally
+                    {
+                        _extensions['.js'] = originalExtensionsJS;
+                    }
+                    assert.strictEqual(actualReturnValue, expectedReturnValue);
+                    assert.strictEqual(actualThis, expectedThis);
+                    assert.deepEqual(actualArgs, expectedArgs);
                 }
-                finally
-                {
-                    _extensions['.js'] = originalExtensionsJS;
-                }
-                assert.strictEqual(actualReturnValue, expectedReturnValue);
-                assert.strictEqual(actualThis, expectedThis);
-                assert.deepEqual(actualArgs, expectedArgs);
-            }
-        );
 
-        it
-        (
-            'provides a consistent temporary replacement for apply',
-            function ()
-            {
-                var postrequire = require(POSTREQUIRE_PATH);
-                var _Array_prototype_slice_call =
-                Function.prototype.call.bind(Array.prototype.slice);
-                var _extensions = module.constructor._extensions;
-                var originalExtensionsJS = _extensions['.js'];
-                var actualReturnValue;
-                var actualThis;
-                var actualArgs;
                 var expectedReturnValue = 'A';
                 var expectedThis = 'B';
-                var expectedArgs = ['C', 'D'];
-                _extensions['.js'] =
-                function (module, filename)
-                {
-                    var fn =
+
+                it
+                (
+                    'Function.prototype.call',
                     function ()
                     {
-                        actualThis = this;
-                        actualArgs = _Array_prototype_slice_call(arguments);
-                        return expectedReturnValue;
-                    };
-                    actualReturnValue = fn.apply(expectedThis, expectedArgs);
-                    originalExtensionsJS(module, filename);
-                };
-                try
-                {
-                    callPostrequire(postrequire, './modules/test.js', { this: null });
-                }
-                finally
-                {
-                    _extensions['.js'] = originalExtensionsJS;
-                }
-                assert.strictEqual(actualReturnValue, expectedReturnValue);
-                assert.strictEqual(actualThis, expectedThis);
-                assert.deepEqual(actualArgs, expectedArgs);
+                        var expectedArgs = ['foo', 'bar'];
+                        test
+                        (
+                            function (callback)
+                            {
+                                var returnValue =
+                                callback.call(expectedThis, expectedArgs[0], expectedArgs[1]);
+                                return returnValue;
+                            },
+                            expectedArgs
+                        );
+                    }
+                );
+
+                it
+                (
+                    'Function.prototype.apply with an (iterable) arguments array',
+                    function ()
+                    {
+                        var expectedArgs = ['foo', 'bar'];
+                        test
+                        (
+                            function (callback)
+                            {
+                                var returnValue =
+                                callback.apply(expectedThis, expectedArgs);
+                                return returnValue;
+                            },
+                            expectedArgs
+                        );
+                    }
+                );
+
+                it
+                (
+                    'Function.prototype.apply with an array-like arguments object',
+                    function ()
+                    {
+                        var expectedArgs = ['foo', 'bar'];
+                        test
+                        (
+                            function (callback)
+                            {
+                                var args = { 0: expectedArgs[0], 1: expectedArgs[1], length: 2 };
+                                var returnValue = callback.apply(expectedThis, args);
+                                return returnValue;
+                            },
+                            expectedArgs
+                        );
+                    }
+                );
+
+                it
+                (
+                    'Function.prototype.apply without arguments',
+                    function ()
+                    {
+                        test
+                        (
+                            function (callback)
+                            {
+                                var returnValue = callback.apply(expectedThis);
+                                return returnValue;
+                            },
+                            []
+                        );
+                    }
+                );
             }
         );
 
