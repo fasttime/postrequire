@@ -39,6 +39,8 @@ function postrequire(id, stubs)
         var applyCall =
         function (fn, args)
         {
+            if (typeof fn !== 'function')
+                throw TypeError('Invalid operation');
             if (fn.length === 5 && fn.name === '')
             {
                 prototype.apply = apply;
@@ -55,20 +57,24 @@ function postrequire(id, stubs)
             var returnValue = _Function_prototype_call_apply(fn, args);
             return returnValue;
         };
-        prototype.apply =
-        function (thisArg, args)
-        {
-            var applyCallArgs = [thisArg];
-            _Array_prototype_push_apply(applyCallArgs, args);
-            var returnValue = applyCall(this, applyCallArgs);
-            return returnValue;
-        };
-        prototype.call =
-        function ()
-        {
-            var returnValue = applyCall(this, arguments);
-            return returnValue;
-        };
+        (
+            prototype.apply =
+            function apply(thisArg, args) // eslint-disable-line func-names
+            {
+                var applyCallArgs = [thisArg];
+                _Array_prototype_push_apply(applyCallArgs, args);
+                var returnValue = applyCall(this, applyCallArgs);
+                return returnValue;
+            }
+        ).prototype = undefined;
+        (
+            prototype.call =
+            function call(thisArg) // eslint-disable-line func-names, no-unused-vars
+            {
+                var returnValue = applyCall(this, arguments);
+                return returnValue;
+            }
+        ).prototype = undefined;
     }
     try
     {

@@ -4,6 +4,21 @@
 
 var assert = require('assert');
 
+assert.throwsTypeError =
+function (block, expectedErrorMessage)
+{
+    assert.throws
+    (
+        block,
+        function (actualError)
+        {
+            assert(actualError instanceof TypeError);
+            assert.strictEqual(actualError.message, expectedErrorMessage);
+            return true;
+        }
+    );
+};
+
 describe
 (
     'postrequire',
@@ -369,29 +384,15 @@ describe
             'provides a consistent temporary replacement for',
             function ()
             {
-                function test(callbackCaller, expectedArgs)
+                function test(hook)
                 {
                     var postrequire = require(POSTREQUIRE_PATH);
-                    var _Array_prototype_slice_call =
-                    Function.prototype.call.bind(Array.prototype.slice);
                     var _extensions = module.constructor._extensions;
                     var originalExtensionsJS = _extensions['.js'];
-                    var actualReturnValue;
-                    var actualThis;
-                    var actualArgs;
                     _extensions['.js'] =
                     function (module, filename)
                     {
-                        actualReturnValue =
-                        callbackCaller
-                        (
-                            function ()
-                            {
-                                actualThis = this;
-                                actualArgs = _Array_prototype_slice_call(arguments);
-                                return expectedReturnValue;
-                            }
-                        );
+                        hook();
                         originalExtensionsJS(module, filename);
                     };
                     try
@@ -402,6 +403,31 @@ describe
                     {
                         _extensions['.js'] = originalExtensionsJS;
                     }
+                }
+
+                function testWithCallback(callbackCaller, expectedArgs)
+                {
+                    var _Array_prototype_slice_call =
+                    Function.prototype.call.bind(Array.prototype.slice);
+                    var actualReturnValue;
+                    var actualThis;
+                    var actualArgs;
+                    test
+                    (
+                        function ()
+                        {
+                            actualReturnValue =
+                            callbackCaller
+                            (
+                                function ()
+                                {
+                                    actualThis = this;
+                                    actualArgs = _Array_prototype_slice_call(arguments);
+                                    return expectedReturnValue;
+                                }
+                            );
+                        }
+                    );
                     assert.strictEqual(actualReturnValue, expectedReturnValue);
                     assert.strictEqual(actualThis, expectedThis);
                     assert.deepEqual(actualArgs, expectedArgs);
@@ -415,8 +441,31 @@ describe
                     'Function.prototype.call',
                     function ()
                     {
-                        var expectedArgs = ['foo', 'bar'];
+                        var actualPrototype;
+                        var actualLength;
+                        var actualName;
                         test
+                        (
+                            function ()
+                            {
+                                actualPrototype = Function.prototype.call.prototype;
+                                actualLength    = Function.prototype.call.length;
+                                actualName      = Function.prototype.call.name;
+                            }
+                        );
+                        assert.strictEqual(actualPrototype, undefined);
+                        assert.strictEqual(actualLength, 1);
+                        assert.strictEqual(actualName, 'call');
+                    }
+                );
+
+                it
+                (
+                    'Function.prototype.call with arguments',
+                    function ()
+                    {
+                        var expectedArgs = ['foo', 'bar'];
+                        testWithCallback
                         (
                             function (callback)
                             {
@@ -431,11 +480,57 @@ describe
 
                 it
                 (
+                    'new Function.prototype.call',
+                    function ()
+                    {
+                        assert.throwsTypeError
+                        (
+                            function ()
+                            {
+                                test
+                                (
+                                    function ()
+                                    {
+                                        // eslint-disable-next-line new-cap
+                                        new Function.prototype.call();
+                                    }
+                                );
+                            },
+                            'Invalid operation'
+                        );
+                    }
+                );
+
+                it
+                (
+                    'Function.prototype.apply',
+                    function ()
+                    {
+                        var actualPrototype;
+                        var actualLength;
+                        var actualName;
+                        test
+                        (
+                            function ()
+                            {
+                                actualPrototype = Function.prototype.apply.prototype;
+                                actualLength    = Function.prototype.apply.length;
+                                actualName      = Function.prototype.apply.name;
+                            }
+                        );
+                        assert.strictEqual(actualPrototype, undefined);
+                        assert.strictEqual(actualLength, 2);
+                        assert.strictEqual(actualName, 'apply');
+                    }
+                );
+
+                it
+                (
                     'Function.prototype.apply with an (iterable) arguments array',
                     function ()
                     {
                         var expectedArgs = ['foo', 'bar'];
-                        test
+                        testWithCallback
                         (
                             function (callback)
                             {
@@ -454,7 +549,7 @@ describe
                     function ()
                     {
                         var expectedArgs = ['foo', 'bar'];
-                        test
+                        testWithCallback
                         (
                             function (callback)
                             {
@@ -472,7 +567,7 @@ describe
                     'Function.prototype.apply without arguments',
                     function ()
                     {
-                        test
+                        testWithCallback
                         (
                             function (callback)
                             {
@@ -480,6 +575,29 @@ describe
                                 return returnValue;
                             },
                             []
+                        );
+                    }
+                );
+
+                it
+                (
+                    'new Function.prototype.apply',
+                    function ()
+                    {
+                        assert.throwsTypeError
+                        (
+                            function ()
+                            {
+                                test
+                                (
+                                    function ()
+                                    {
+                                        // eslint-disable-next-line new-cap
+                                        new Function.prototype.apply();
+                                    }
+                                );
+                            },
+                            'Invalid operation'
                         );
                     }
                 );
@@ -493,17 +611,8 @@ describe
             {
                 var postrequire = require(POSTREQUIRE_PATH);
 
-                assert.throws
-                (
-                    postrequire.bind(null),
-                    function (error)
-                    {
-                        assert(error instanceof TypeError);
-                        assert.strictEqual
-                        (error.message, 'First argument must be a non-empty string');
-                        return true;
-                    }
-                );
+                assert.throwsTypeError
+                (postrequire.bind(null), 'First argument must be a non-empty string');
             }
         );
 
@@ -514,17 +623,8 @@ describe
             {
                 var postrequire = require(POSTREQUIRE_PATH);
 
-                assert.throws
-                (
-                    postrequire.bind(null, ''),
-                    function (error)
-                    {
-                        assert(error instanceof TypeError);
-                        assert.strictEqual
-                        (error.message, 'First argument must be a non-empty string');
-                        return true;
-                    }
-                );
+                assert.throwsTypeError
+                (postrequire.bind(null, ''), 'First argument must be a non-empty string');
             }
         );
 
@@ -560,16 +660,10 @@ describe
             {
                 var postrequire = require(POSTREQUIRE_PATH);
 
-                assert.throws
+                assert.throwsTypeError
                 (
                     postrequire.bind(null, './modules/test', 'foobar'),
-                    function (error)
-                    {
-                        assert(error instanceof TypeError);
-                        assert.strictEqual
-                        (error.message, 'Second argument must be an object, undefined or null');
-                        return true;
-                    }
+                    'Second argument must be an object, undefined or null'
                 );
             }
         );
