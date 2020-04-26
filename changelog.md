@@ -1,3 +1,9 @@
+<a name="0.2.0"></a>
+## [0.2.0](https://github.com/fasttime/postrequire/releases/tag/0.2.0) (2020-04-26)
+
+* Added ability to stub CommonJS global‐like variables and `this`.
+* Using EcmaScript style type declarations.
+
 <a name="0.1.1"></a>
 ## [0.1.1](https://github.com/fasttime/postrequire/releases/tag/0.1.1) (2019-07-20)
 
