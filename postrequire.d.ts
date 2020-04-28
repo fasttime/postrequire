@@ -1,3 +1,7 @@
+/**
+ * Specifies values for CommonJS global‐like variables and the `this` keyword at top level in the
+ * module being loaded.
+ */
 export interface PostrequireStubs
 {
     this?:          any;
