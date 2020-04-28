@@ -3,9 +3,12 @@
   "version": "0.2.0",
   "description": "(Re)runs initialization code contained in a Node.js module.",
   "keywords": [
+    "mock",
     "node",
     "nodejs",
-    "require"
+    "require",
+    "stub",
+    "test"
   ],
   "homepage": "https://github.com/fasttime/postrequire",
   "bugs": "https://github.com/fasttime/postrequire/issues",
