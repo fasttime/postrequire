@@ -54,7 +54,6 @@ task
             '--reporter=text-summary',
             mochaPath,
             '--check-leaks',
-            '--globals=__coverage__',
             'test/**/*.spec.js',
         ];
         const childProcess = fork(c8Path, forkArgs);
