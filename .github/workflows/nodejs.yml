@@ -18,6 +18,8 @@ jobs:
 
   test:
 
+    name: test (Node.js ${{ matrix.node-version }})
+
     runs-on: ubuntu-latest
 
     strategy:
