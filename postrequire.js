@@ -7,6 +7,20 @@ var CJS_VAR_NAMES = ['this', 'exports', 'require', 'module', '__filename', '__di
 
 var parentModule = module.parent;
 
+// In Node.js 0.x, require incorrectly uses the global object as a second parameter in a call to
+// Module._load.
+function patchLegacyNode(Module)
+{
+    var _load = Module._load;
+    Module._load =
+    function (request)
+    {
+        Module._load = _load;
+        var returnValue = _load(request);
+        return returnValue;
+    };
+}
+
 function postrequire(id, stubs)
 {
     if (typeof id !== 'string' || !id)
@@ -19,6 +33,7 @@ function postrequire(id, stubs)
     var cachedModule = cache[filename];
     var _require = parentModule.require;
     cache[filename] = undefined;
+    patchLegacyNode(Module);
     var indexedStubs = [];
     if (stubs !== undefined && stubs !== null)
     {

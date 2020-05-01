@@ -107,6 +107,24 @@ describe
 
         it
         (
+            '(re)loads a nested module',
+            function ()
+            {
+                var testId = require.resolve('./modules/use-postrequire');
+                var postrequire = require(POSTREQUIRE_PATH);
+                var test  = callPostrequire(postrequire, './modules/use-postrequire');
+                var test2 = callPostrequire(postrequire, './modules/use-postrequire');
+
+                assert(!(testId in require.cache));
+                assert.strictEqual(module.children.length, 1);
+                assert.notStrictEqual(test2, test);
+                assert.deepEqual(test, { });
+                assert.deepEqual(test2, { });
+            }
+        );
+
+        it
+        (
             'loads a module already required in the same parent',
             function ()
             {
