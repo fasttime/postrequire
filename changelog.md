@@ -1,3 +1,8 @@
+<a name="0.2.1"></a>
+## [0.2.1](https://github.com/fasttime/postrequire/releases/tag/0.2.1) (2020-05-01)
+
+* TypeDoc for PostrequireStubs
+
 <a name="0.2.0"></a>
 ## [0.2.0](https://github.com/fasttime/postrequire/releases/tag/0.2.0) (2020-04-26)
 
