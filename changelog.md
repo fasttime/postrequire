@@ -1,7 +1,12 @@
+<a name="0.2.2"></a>
+## [0.2.2](https://github.com/fasttime/postrequire/releases/tag/0.2.2) (2020-05-02)
+
+* Patch for `Module._load` in Node.js 0.x.
+
 <a name="0.2.1"></a>
 ## [0.2.1](https://github.com/fasttime/postrequire/releases/tag/0.2.1) (2020-05-01)
 
-* TypeDoc for PostrequireStubs
+* TypeDoc for `PostrequireStubs`.
 
 <a name="0.2.0"></a>
 ## [0.2.0](https://github.com/fasttime/postrequire/releases/tag/0.2.0) (2020-04-26)
