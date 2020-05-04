@@ -342,6 +342,66 @@ describe
 
         it
         (
+            'calls a stubbing hook with all stubs',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var actualStubs;
+                var returnValue =
+                callPostrequire
+                (
+                    postrequire,
+                    './modules/export-stubs',
+                    function (stubs)
+                    {
+                        actualStubs = stubs;
+                    }
+                );
+
+                assert.strictEqual(actualStubs.module.exports, returnValue);
+                assert.strictEqual(actualStubs.this,        returnValue.this);
+                assert.strictEqual(actualStubs.exports,     returnValue.exports);
+                assert.strictEqual(actualStubs.require,     returnValue.require);
+                assert.strictEqual(actualStubs.module,      returnValue.module);
+                assert.strictEqual(actualStubs.__filename,  returnValue.__filename);
+                assert.strictEqual(actualStubs.__dirname,   returnValue.__dirname);
+            }
+        );
+
+        it
+        (
+            'uses all stubs from a stubbing hook',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var exports = { };
+                var expected = { };
+                callPostrequire
+                (
+                    postrequire,
+                    './modules/export-stubs',
+                    function (stubs)
+                    {
+                        expected.this       = stubs.this          = 0;
+                        expected.exports    = stubs.exports       = exports;
+                        expected.require    = stubs.require       = 3;
+                        expected.module     = stubs.module        = 4;
+                        expected.__filename = stubs.__filename    = 5;
+                        expected.__dirname  = stubs.__dirname     = 6;
+                    }
+                );
+
+                assert.strictEqual(exports.this,        expected.this);
+                assert.strictEqual(exports.exports,     expected.exports);
+                assert.strictEqual(exports.require,     expected.require);
+                assert.strictEqual(exports.module,      expected.module);
+                assert.strictEqual(exports.__filename,  expected.__filename);
+                assert.strictEqual(exports.__dirname,   expected.__dirname);
+            }
+        );
+
+        it
+        (
             'does not prevent a module from overwriting Function.prototype methods',
             function ()
             {
@@ -681,7 +741,7 @@ describe
                 assert.throwsTypeError
                 (
                     postrequire.bind(null, './modules/test', 'foobar'),
-                    'Second argument must be an object, undefined or null'
+                    'Second argument must be an object, a function, undefined or null'
                 );
             }
         );

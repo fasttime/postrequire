@@ -20,14 +20,23 @@ var obj2 = postrequire("./my-module"); // Rerunning initialization code.
 
 ## Stubbing CommonJS variables
 
-It is also possible to replace the values of the CommonJS global‐like variables `exports`,
-`require`, `module`, `__filename` and `__dirname` inside the module being loaded with custom
-predefined values.
-The value of `this` at module level can be replaced, too.
+It is also possible to modify the values of the CommonJS global‐like variables `exports`, `require`,
+`module`, `__filename` and `__dirname` inside the module being loaded with custom values.
+The value of `this` at module level can be modified, too.
 
-In order to replace the value of one or more of the identifiers, pass an object as a second
-parameter to `postrequire`, including the names of the identifiers as property names along with
-their new values.
+In order to modify the value of one or more of the identifiers inside the new modules, a second
+parameter must be passed to `postrequire`.
+
+If the second parameter is a regular object, the values of any defined properties having the name of
+a CommonJS variable or `this` will be used to replace the values of their respective identifiers
+inside the module.
+
+Another option is passing a callback function as a second parameter.
+The callback is called with an object as a single argument before the module is loaded.
+The object passed to the callback contains name‐value property mappings for all CommonJS variables
+and `this` as they would regularly occur inside the new module.
+If the property values are modified inside the callback, the changes are reflected when the module
+is loaded.
 
 ### Example 1: Faking `__filename` and `__dirname`
 
@@ -49,7 +58,29 @@ The pathname of this module is /tmp/fake-module.js
 This module is located inside /tmp
 ```
 
-### Example 2: Pretending to be a browser with JSDOM
+### Example 2: Transitive postrequire
+
+```js
+function withTransitivePostrequire(stubs)
+{
+    var require = stubs.require;
+    var postrequire = require("postrequire");
+    function transitivePostrequire(id)
+    {
+        return postrequire(id, withTransitivePostrequire);
+    }
+    for (var key in require)
+        transitivePostrequire[key] = require[key];
+    stubs.require = transitivePostrequire;
+}
+
+var postrequire = require("postrequire");
+// Load a module and all its descendant modules without using the cache.
+// NOTE: This will result in a stack overflow error if any circular dependencies are encountered.
+var imports = postrequire("semver", withTransitivePostrequire);
+```
+
+### Example 3: Pretending to be a browser with JSDOM
 
 ```js
 // browser.js

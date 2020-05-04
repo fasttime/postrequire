@@ -21,12 +21,12 @@ function patchLegacyNode(Module)
     };
 }
 
-function postrequire(id, stubs)
+function postrequire(id, stubsOrHook)
 {
     if (typeof id !== 'string' || !id)
         throw TypeError('First argument must be a non-empty string');
-    if (stubs !== undefined && typeof stubs !== 'object')
-        throw TypeError('Second argument must be an object, undefined or null');
+    if (stubsOrHook !== undefined && stubsOrHook !== null && stubsOrHook !== Object(stubsOrHook))
+        throw TypeError('Second argument must be an object, a function, undefined or null');
     var Module = parentModule.constructor;
     var cache = Module._cache;
     var filename = Module._resolveFilename(id, parentModule);
@@ -34,19 +34,7 @@ function postrequire(id, stubs)
     var _require = parentModule.require;
     cache[filename] = undefined;
     patchLegacyNode(Module);
-    var indexedStubs = [];
-    if (stubs !== undefined && stubs !== null)
-    {
-        CJS_VAR_NAMES.forEach
-        (
-            function (stubName, index)
-            {
-                if (stubName in stubs)
-                    indexedStubs[index] = stubs[stubName];
-            }
-        );
-    }
-    if (indexedStubs.length)
+    if (stubsOrHook !== undefined && stubsOrHook !== null)
     {
         var prototype = Function.prototype;
         var apply = prototype.apply;
@@ -61,13 +49,36 @@ function postrequire(id, stubs)
                 prototype.apply = apply;
                 prototype.call = call;
                 prototype = undefined;
-                indexedStubs.forEach
-                (
-                    function (stub, index)
-                    {
-                        args[index] = stub;
-                    }
-                );
+                if (typeof stubsOrHook !== 'function')
+                {
+                    CJS_VAR_NAMES.forEach
+                    (
+                        function (stubName, index)
+                        {
+                            if (stubName in stubsOrHook)
+                                args[index] = stubsOrHook[stubName];
+                        }
+                    );
+                }
+                else
+                {
+                    var stubMap = { };
+                    CJS_VAR_NAMES.forEach
+                    (
+                        function (stubName, index)
+                        {
+                            stubMap[stubName] = args[index];
+                        }
+                    );
+                    stubsOrHook(stubMap);
+                    CJS_VAR_NAMES.forEach
+                    (
+                        function (stubName, index)
+                        {
+                            args[index] = stubMap[stubName];
+                        }
+                    );
+                }
             }
             var returnValue = _Function_prototype_call_apply(fn, args);
             return returnValue;
