@@ -1,3 +1,8 @@
+<a name="1.0.0"></a>
+## [1.0.0](https://github.com/fasttime/postrequire/releases/tag/1.0.0) (2020-05-05)
+
+* A callback function can be used as a second parameter.
+
 <a name="0.2.2"></a>
 ## [0.2.2](https://github.com/fasttime/postrequire/releases/tag/0.2.2) (2020-05-02)
 

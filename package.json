@@ -1,6 +1,6 @@
 {
   "name": "postrequire",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "description": "(Re)runs initialization code contained in a Node.js module.",
   "keywords": [
     "mock",
@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@fasttime/gulp-lint": "~0.27.1",
-    "c8": "~7.1.1",
+    "c8": "~7.1.2",
     "gulp": "~4.0.2",
     "mocha": "~3.5.3"
   }
