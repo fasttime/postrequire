@@ -31,9 +31,9 @@
     "test": "mocha --check-leaks test/**/*.spec.js"
   },
   "devDependencies": {
-    "@fasttime/gulp-lint": "~0.27.1",
-    "c8": "~7.1.2",
-    "gulp": "~4.0.2",
-    "mocha": "~3.5.3"
+    "@fasttime/gulp-lint": "latest",
+    "c8": "latest",
+    "gulp": "latest",
+    "mocha": "3"
   }
 }

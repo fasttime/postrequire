@@ -7,20 +7,6 @@ var CJS_VAR_NAMES = ['this', 'exports', 'require', 'module', '__filename', '__di
 
 var parentModule = module.parent;
 
-// In Node.js 0.x, require incorrectly uses the global object as a second parameter in a call to
-// Module._load.
-function patchLegacyNode(Module)
-{
-    var _load = Module._load;
-    Module._load =
-    function (request)
-    {
-        Module._load = _load;
-        var returnValue = _load(request);
-        return returnValue;
-    };
-}
-
 function postrequire(id, stubsOrHook)
 {
     if (typeof id !== 'string' || !id)
@@ -36,9 +22,9 @@ function postrequire(id, stubsOrHook)
     patchLegacyNode(Module);
     if (stubsOrHook !== undefined && stubsOrHook !== null)
     {
-        var prototype = Function.prototype;
-        var apply = prototype.apply;
-        var call = prototype.call;
+        var Function_prototype = Function.prototype;
+        var apply = Function_prototype.apply;
+        var call = Function_prototype.call;
         var applyCall =
         function (fn, args)
         {
@@ -46,9 +32,9 @@ function postrequire(id, stubsOrHook)
                 throw TypeError('Invalid operation');
             if (fn.length === 5 && fn.name === '')
             {
-                prototype.apply = apply;
-                prototype.call = call;
-                prototype = undefined;
+                Function_prototype.apply = apply;
+                Function_prototype.call = call;
+                Function_prototype = undefined;
                 if (typeof stubsOrHook !== 'function')
                 {
                     CJS_VAR_NAMES.forEach
@@ -84,7 +70,7 @@ function postrequire(id, stubsOrHook)
             return returnValue;
         };
         (
-            prototype.apply =
+            Function_prototype.apply =
             function apply(thisArg, args) // eslint-disable-line func-names
             {
                 var applyCallArgs = [thisArg];
@@ -94,13 +80,26 @@ function postrequire(id, stubsOrHook)
             }
         ).prototype = undefined;
         (
-            prototype.call =
+            Function_prototype.call =
             function call(thisArg) // eslint-disable-line func-names, no-unused-vars
             {
                 var returnValue = applyCall(this, arguments);
                 return returnValue;
             }
         ).prototype = undefined;
+        if (process.config.variables.node_module_version >= 88)
+        {
+            var Module_prototype = Module.prototype;
+            var _compile = Module_prototype._compile;
+            Module_prototype._compile =
+            function (content, filename)
+            {
+                Module_prototype._compile = _compile;
+                var patchedCompile = getPatchedCompile();
+                var returnValue = patchedCompile(this, content, filename);
+                return returnValue;
+            };
+        }
     }
     try
     {
@@ -109,11 +108,13 @@ function postrequire(id, stubsOrHook)
     }
     finally
     {
-        if (prototype !== undefined)
+        if (Function_prototype !== undefined)
         {
-            prototype.apply = apply;
-            prototype.call = call;
+            Function_prototype.apply = apply;
+            Function_prototype.call = call;
         }
+        if (Module_prototype !== undefined)
+            Module_prototype._compile = _compile;
         if (cachedModule !== undefined)
             cache[filename] = cachedModule;
         else
@@ -163,3 +164,51 @@ function postrequire(id, stubsOrHook)
         module.exports = postrequire;
 }
 )();
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// In Node.js 0.x, require incorrectly uses the global object as a second parameter in a call to
+// Module._load.
+
+function patchLegacyNode(Module)
+{
+    var _load = Module._load;
+    Module._load =
+    function (request)
+    {
+        Module._load = _load;
+        var returnValue = _load(request);
+        return returnValue;
+    };
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// In Node.js 15, Module.prototype._compile does not invoke call or apply on the CJS module wrapper.
+// This patch attempts to restore the previous behavior.
+
+var patchedCompile;
+
+function getPatchedCompile()
+{
+    if (!patchedCompile)
+    {
+        var createRequire   = require('module').createRequire;
+        var pathDirname     = require('path').dirname;
+        var compileFunction = require('vm').compileFunction;
+
+        var params = CJS_VAR_NAMES.slice(1);
+        patchedCompile =
+        function (module, content, filename)
+        {
+            var compiledWrapper = compileFunction(content, params, { filename: filename });
+            var dirname = pathDirname(filename);
+            var require = createRequire(filename);
+            var exports = module.exports;
+            var returnValue =
+            compiledWrapper.call(exports, exports, require, module, filename, dirname);
+            return returnValue;
+        };
+    }
+    return patchedCompile;
+}

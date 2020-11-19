@@ -27,6 +27,7 @@ task
                 src: ['postrequire.{js,d.ts}', 'test/**/*.js'],
                 envs: 'node',
                 parserOptions: { project: 'tsconfig.json' },
+                rules: { 'spaced-comment': ['error', 'always', { exceptions: ['/'] }] },
             },
             {
                 src: 'gulpfile.js',
