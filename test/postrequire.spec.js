@@ -27,9 +27,9 @@ describe
         var POSTREQUIRE_PATH = '..';
         var SOME_MODULE = './modules/dummy';
 
-        function callPostrequire(postrequire, id, stubs)
+        function callPostrequire(postrequire, id, stubsOrHook)
         {
-            var exports = postrequire(id, stubs);
+            var exports = postrequire(id, stubsOrHook);
             return exports;
         }
 
@@ -402,31 +402,36 @@ describe
 
         it
         (
-            'does not prevent a module from overwriting Function.prototype methods',
+            'does not prevent a module from overwriting hook methods',
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
                 var _Function_prototype = Function.prototype;
                 var call = _Function_prototype.call;
                 var apply = _Function_prototype.apply;
+                var _Module_prototype = module.__proto__;
+                var _compile = _Module_prototype._compile;
                 try
                 {
-                    postrequire('./modules/overwrite-call-and-apply', { this: null });
+                    callPostrequire
+                    (postrequire, './modules/overwrite-hook-methods', { this: null });
 
                     assert.strictEqual(_Function_prototype.call, 'foo');
                     assert.strictEqual(_Function_prototype.apply, 'bar');
+                    assert.strictEqual(_Module_prototype._compile, 'baz');
                 }
                 finally
                 {
                     _Function_prototype.call = call;
                     _Function_prototype.apply = apply;
+                    _Module_prototype._compile = _compile;
                 }
             }
         );
 
         it
         (
-            'restores Function.prototype hooks before initializing a module',
+            'restores hook methods before initializing a module',
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
@@ -434,26 +439,32 @@ describe
                 var _Function_prototype = Function.prototype;
                 var call = _Function_prototype.call;
                 var apply = _Function_prototype.apply;
+                var _Module_prototype = module.__proto__;
+                var _compile = _Module_prototype._compile;
                 callPostrequire(postrequire, './modules/export-stubs', { exports: exports });
 
                 assert.strictEqual(exports.call, call);
                 assert.strictEqual(exports.apply, apply);
+                assert.strictEqual(exports._compile, _compile);
             }
         );
 
         it
         (
-            'restores Function.prototype hooks when loading a non-module',
+            'restores hook methods when loading a non-module',
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
                 var _Function_prototype = Function.prototype;
                 var call = _Function_prototype.call;
                 var apply = _Function_prototype.apply;
+                var _Module_prototype = module.__proto__;
+                var _compile = _Module_prototype._compile;
                 callPostrequire(postrequire, './modules/non-module.json', { this: null });
 
                 assert.strictEqual(_Function_prototype.call, call);
                 assert.strictEqual(_Function_prototype.apply, apply);
+                assert.strictEqual(_Module_prototype._compile, _compile);
             }
         );
 

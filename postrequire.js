@@ -13,7 +13,7 @@ function postrequire(id, stubsOrHook)
         throw TypeError('First argument must be a non-empty string');
     if (stubsOrHook !== undefined && stubsOrHook !== null && stubsOrHook !== Object(stubsOrHook))
         throw TypeError('Second argument must be an object, a function, undefined or null');
-    var Module = parentModule.constructor;
+    var Module = module.constructor;
     var cache = Module._cache;
     var filename = Module._resolveFilename(id, parentModule);
     var cachedModule = cache[filename];
@@ -22,9 +22,9 @@ function postrequire(id, stubsOrHook)
     patchLegacyNode(Module);
     if (stubsOrHook !== undefined && stubsOrHook !== null)
     {
-        var Function_prototype = Function.prototype;
-        var apply = Function_prototype.apply;
-        var call = Function_prototype.call;
+        var _Function_prototype = Function.prototype;
+        var apply = _Function_prototype.apply;
+        var call = _Function_prototype.call;
         var applyCall =
         function (fn, args)
         {
@@ -32,9 +32,9 @@ function postrequire(id, stubsOrHook)
                 throw TypeError('Invalid operation');
             if (fn.length === 5 && fn.name === '')
             {
-                Function_prototype.apply = apply;
-                Function_prototype.call = call;
-                Function_prototype = undefined;
+                _Function_prototype.apply = apply;
+                _Function_prototype.call = call;
+                _Function_prototype = undefined;
                 if (typeof stubsOrHook !== 'function')
                 {
                     CJS_VAR_NAMES.forEach
@@ -70,7 +70,7 @@ function postrequire(id, stubsOrHook)
             return returnValue;
         };
         (
-            Function_prototype.apply =
+            _Function_prototype.apply =
             function apply(thisArg, args) // eslint-disable-line func-names
             {
                 var applyCallArgs = [thisArg];
@@ -80,7 +80,7 @@ function postrequire(id, stubsOrHook)
             }
         ).prototype = undefined;
         (
-            Function_prototype.call =
+            _Function_prototype.call =
             function call(thisArg) // eslint-disable-line func-names, no-unused-vars
             {
                 var returnValue = applyCall(this, arguments);
@@ -89,12 +89,13 @@ function postrequire(id, stubsOrHook)
         ).prototype = undefined;
         if (process.config.variables.node_module_version >= 88)
         {
-            var Module_prototype = Module.prototype;
-            var _compile = Module_prototype._compile;
-            Module_prototype._compile =
+            var _Module_prototype = Module.prototype;
+            var _compile = _Module_prototype._compile;
+            _Module_prototype._compile =
             function (content, filename)
             {
-                Module_prototype._compile = _compile;
+                _Module_prototype._compile = _compile;
+                _Module_prototype = undefined;
                 var patchedCompile = getPatchedCompile();
                 var returnValue = patchedCompile(this, content, filename);
                 return returnValue;
@@ -108,13 +109,13 @@ function postrequire(id, stubsOrHook)
     }
     finally
     {
-        if (Function_prototype !== undefined)
+        if (_Function_prototype !== undefined)
         {
-            Function_prototype.apply = apply;
-            Function_prototype.call = call;
+            _Function_prototype.apply = apply;
+            _Function_prototype.call = call;
         }
-        if (Module_prototype !== undefined)
-            Module_prototype._compile = _compile;
+        if (_Module_prototype !== undefined)
+            _Module_prototype._compile = _compile;
         if (cachedModule !== undefined)
             cache[filename] = cachedModule;
         else
@@ -193,15 +194,16 @@ function getPatchedCompile()
 {
     if (!patchedCompile)
     {
-        var createRequire   = require('module').createRequire;
         var pathDirname     = require('path').dirname;
         var compileFunction = require('vm').compileFunction;
 
-        var params = CJS_VAR_NAMES.slice(1);
+        var PARAM_NAMES = CJS_VAR_NAMES.slice(1);
+
+        var createRequire = module.constructor.createRequire;
         patchedCompile =
         function (module, content, filename)
         {
-            var compiledWrapper = compileFunction(content, params, { filename: filename });
+            var compiledWrapper = compileFunction(content, PARAM_NAMES, { filename: filename });
             var dirname = pathDirname(filename);
             var require = createRequire(filename);
             var exports = module.exports;
