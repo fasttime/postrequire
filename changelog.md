@@ -1,3 +1,8 @@
+<a name="1.1.0"></a>
+## [1.1.0](https://github.com/fasttime/postrequire/releases/tag/1.1.0) (2020-11-20)
+
+* Patch for Node.js 15.
+
 <a name="1.0.0"></a>
 ## [1.0.0](https://github.com/fasttime/postrequire/releases/tag/1.0.0) (2020-05-05)
 
