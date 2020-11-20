@@ -24,7 +24,7 @@ task
         lint
         (
             {
-                src: ['postrequire.{js,d.ts}', 'test/**/*.js'],
+                src: ['postrequire.{js,d.ts}', 'test/**/*.js', '!test/modules/malformed.js'],
                 envs: 'node',
                 parserOptions: { project: 'tsconfig.json' },
                 rules: { 'spaced-comment': ['error', 'always', { exceptions: ['/'] }] },

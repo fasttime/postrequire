@@ -33,6 +33,22 @@ describe
             return exports;
         }
 
+        function captureHooks()
+        {
+            var _Function_prototype = Function.prototype;
+            var call = _Function_prototype.call;
+            var apply = _Function_prototype.apply;
+            var Module = module.constructor;
+            var _load = Module._load;
+            var _Module_prototype = Module.prototype;
+            var _compile = _Module_prototype._compile;
+            var hooks = { call: call, apply: apply, _load: _load, _compile: _compile };
+            return hooks;
+        }
+
+        function noop()
+        { }
+
         var children = null;
         var keySet = null;
 
@@ -406,25 +422,25 @@ describe
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
-                var _Function_prototype = Function.prototype;
-                var call = _Function_prototype.call;
-                var apply = _Function_prototype.apply;
-                var _Module_prototype = module.__proto__;
-                var _compile = _Module_prototype._compile;
+                var hooks = captureHooks();
                 try
                 {
                     callPostrequire
                     (postrequire, './modules/overwrite-hook-methods', { this: null });
 
-                    assert.strictEqual(_Function_prototype.call, 'foo');
-                    assert.strictEqual(_Function_prototype.apply, 'bar');
-                    assert.strictEqual(_Module_prototype._compile, 'baz');
+                    assert.strictEqual(Function.prototype.call, 'foo');
+                    assert.strictEqual(Function.prototype.apply, 'bar');
+                    assert.strictEqual(module.constructor._load, 'baz');
+                    assert.strictEqual(module.__proto__._compile, 42);
                 }
                 finally
                 {
-                    _Function_prototype.call = call;
-                    _Function_prototype.apply = apply;
-                    _Module_prototype._compile = _compile;
+                    // eslint-disable-next-line no-extend-native
+                    Function.prototype.call    = hooks.call;
+                    // eslint-disable-next-line no-extend-native
+                    Function.prototype.apply   = hooks.apply;
+                    module.constructor._load   = hooks._load;
+                    module.__proto__._compile  = hooks._compile;
                 }
             }
         );
@@ -435,17 +451,13 @@ describe
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
-                var exports = { };
-                var _Function_prototype = Function.prototype;
-                var call = _Function_prototype.call;
-                var apply = _Function_prototype.apply;
-                var _Module_prototype = module.__proto__;
-                var _compile = _Module_prototype._compile;
-                callPostrequire(postrequire, './modules/export-stubs', { exports: exports });
+                var hooks = captureHooks();
+                var exports = callPostrequire(postrequire, './modules/export-stubs', noop);
 
-                assert.strictEqual(exports.call, call);
-                assert.strictEqual(exports.apply, apply);
-                assert.strictEqual(exports._compile, _compile);
+                assert.strictEqual(exports.call, hooks.call);
+                assert.strictEqual(exports.apply, hooks.apply);
+                assert.strictEqual(exports._load, hooks._load);
+                assert.strictEqual(exports._compile, hooks._compile);
             }
         );
 
@@ -455,16 +467,55 @@ describe
             function ()
             {
                 var postrequire = require(POSTREQUIRE_PATH);
-                var _Function_prototype = Function.prototype;
-                var call = _Function_prototype.call;
-                var apply = _Function_prototype.apply;
-                var _Module_prototype = module.__proto__;
-                var _compile = _Module_prototype._compile;
-                callPostrequire(postrequire, './modules/non-module.json', { this: null });
+                var hooks = captureHooks();
+                callPostrequire(postrequire, './modules/non-module.json', noop);
 
-                assert.strictEqual(_Function_prototype.call, call);
-                assert.strictEqual(_Function_prototype.apply, apply);
-                assert.strictEqual(_Module_prototype._compile, _compile);
+                assert.strictEqual(Function.prototype.call, hooks.call);
+                assert.strictEqual(Function.prototype.apply, hooks.apply);
+                assert.strictEqual(module.constructor._load, hooks._load);
+                assert.strictEqual(module.__proto__._compile, hooks._compile);
+            }
+        );
+
+        it
+        (
+            'restores hook methods when trying to load a nonexisting module',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var hooks = captureHooks();
+                try
+                {
+                    callPostrequire(postrequire, '?', noop);
+                }
+                catch (error)
+                { }
+
+                assert.strictEqual(Function.prototype.call, hooks.call);
+                assert.strictEqual(Function.prototype.apply, hooks.apply);
+                assert.strictEqual(module.constructor._load, hooks._load);
+                assert.strictEqual(module.__proto__._compile, hooks._compile);
+            }
+        );
+
+        it
+        (
+            'restores hook methods when trying to load a malformed module',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+                var hooks = captureHooks();
+                try
+                {
+                    callPostrequire(postrequire, './modules/malformed', noop);
+                }
+                catch (error)
+                { }
+
+                assert.strictEqual(Function.prototype.call, hooks.call);
+                assert.strictEqual(Function.prototype.apply, hooks.apply);
+                assert.strictEqual(module.constructor._load, hooks._load);
+                assert.strictEqual(module.__proto__._compile, hooks._compile);
             }
         );
 
@@ -725,6 +776,17 @@ describe
                 var postrequire = require(POSTREQUIRE_PATH);
 
                 assert.throws(postrequire.bind(null, '?'), /\bCannot find module '\?'/);
+            }
+        );
+
+        it
+        (
+            'throws on malformed module',
+            function ()
+            {
+                var postrequire = require(POSTREQUIRE_PATH);
+
+                assert.throws(postrequire.bind(null, './modules/malformed'), SyntaxError);
             }
         );
 
