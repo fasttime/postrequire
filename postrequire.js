@@ -86,7 +86,8 @@ function patchApplyCall(stubsOrHook)
     return undo;
 }
 
-// In Node.js 15, Module.prototype._compile does not invoke call or apply on the CJS module wrapper.
+// In Node.js 14.17.1 and later, Module.prototype._compile does not invoke call or apply on the CJS
+// module wrapper.
 // This patch attempts to restore the previous behavior.
 function patchCompile()
 {
@@ -152,7 +153,7 @@ function postrequire(id, stubsOrHook)
     if (stubsOrHook !== undefined && stubsOrHook !== null)
     {
         var undoApplyCallPatch = patchApplyCall(stubsOrHook);
-        if (process.config.variables.node_module_version >= 88)
+        if (process.config.variables.node_module_version >= 83)
             var undoCompilePatch = patchCompile();
     }
     try
