@@ -28,10 +28,11 @@
   },
   "scripts": {
     "build": "npm install && gulp",
+    "coverage": "c8 --reporter=html --reporter=text-summary npm test",
     "test": "mocha --check-leaks test/**/*.spec.js"
   },
   "devDependencies": {
-    "@fasttime/gulp-lint": "latest",
+    "@fasttime/lint": "latest",
     "c8": "latest",
     "gulp": "latest",
     "mocha": "3"

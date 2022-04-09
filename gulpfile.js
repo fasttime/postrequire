@@ -7,7 +7,7 @@ task
     'clean',
     async () =>
     {
-        const { promises: { rm } } = require('fs');
+        const { rm } = require('fs/promises');
 
         const options = { force: true, recursive: true };
         await rm('coverage', options);
@@ -17,11 +17,11 @@ task
 task
 (
     'lint',
-    () =>
+    async () =>
     {
-        const lint = require('@fasttime/gulp-lint');
+        const { lint } = require('@fasttime/lint');
 
-        const stream =
+        await
         lint
         (
             {
@@ -36,7 +36,6 @@ task
                 parserOptions: { ecmaVersion: 9 },
             },
         );
-        return stream;
     },
 );
 
