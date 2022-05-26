@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@fasttime/lint": "latest",
-    "c8": "latest",
+    "c8js": "latest",
     "gulp": "latest",
     "mocha": "3"
   }
