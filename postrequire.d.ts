@@ -1,21 +1,24 @@
-/**
- * A callback called by postrequire to preview and modify the values for CommonJS global‐like
- * variables and the `this` keyword at top level in the module being loaded.
- */
-export type PostrequireHook = (stubs: PostrequireStubs) => void;
-
-/**
- * Specifies values for CommonJS global‐like variables and the `this` keyword at top level in the
- * module being loaded.
- */
-export interface PostrequireStubs
+declare namespace postrequire
 {
-    this:       any;
-    exports:    any;
-    require:    any;
-    module:     any;
-    __filename: any;
-    __dirname:  any;
+    /**
+     * A callback called by postrequire to preview and modify the values for CommonJS global‐like
+     * variables and the `this` keyword at top level in the module being loaded.
+     */
+    export type PostrequireHook = (stubs: PostrequireStubs) => void;
+
+    /**
+     * Specifies values for CommonJS global‐like variables and the `this` keyword at top level in
+     * the module being loaded.
+     */
+    export interface PostrequireStubs
+    {
+        this:       any;
+        exports:    any;
+        require:    any;
+        module:     any;
+        __filename: any;
+        __dirname:  any;
+    }
 }
 
 /**
@@ -31,5 +34,11 @@ export interface PostrequireStubs
  *
  * The exported module contents.
  */
-export default function postrequire
-(id: string, stubsOrHook?: Readonly<Partial<PostrequireStubs>> | PostrequireHook): any;
+declare function postrequire
+(
+    id: string,
+    stubsOrHook?: Readonly<Partial<postrequire.PostrequireStubs>> | postrequire.PostrequireHook
+):
+any;
+
+export = postrequire;
