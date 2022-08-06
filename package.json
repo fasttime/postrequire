@@ -35,6 +35,7 @@
     "@fasttime/lint": "latest",
     "c8js": "latest",
     "gulp": "latest",
-    "mocha": "3"
+    "mocha": "3",
+    "semver": "5"
   }
 }

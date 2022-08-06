@@ -25,13 +25,19 @@ task
         lint
         (
             {
-                src: ['postrequire.{js,d.ts}', 'test/**/*.js', '!test/modules/malformed.js'],
+                src:
+                [
+                    'postrequire.{js,d.ts}',
+                    'test/**/*.js',
+                    '!test/modules/import-postrequire.js',
+                    '!test/modules/malformed.js',
+                ],
                 envs: 'node',
                 parserOptions: { project: 'tsconfig.json' },
                 rules: { 'spaced-comment': ['error', 'always', { exceptions: ['/'] }] },
             },
             {
-                src: 'gulpfile.js',
+                src: ['gulpfile.js', 'test/modules/import-postrequire.js'],
                 envs: 'node',
                 parserOptions: { ecmaVersion: 2020 },
             },

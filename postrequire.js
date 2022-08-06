@@ -1,12 +1,19 @@
 'use strict';
 
+var parentModule = module.parent;
+
+if (parentModule == null)
+    throw Error('Failed to load postrequire: no parent module found');
+
+var inspect = require('util').inspect;
+
 var _Array_prototype_push_apply;
 var _Function_prototype_call_apply;
 
 var CJS_VAR_NAMES = ['this', 'exports', 'require', 'module', '__filename', '__dirname'];
 var PARAM_NAMES;
 
-var parentModule = module.parent;
+var Module = module.constructor;
 
 function patchApplyCall(stubsOrHook)
 {
@@ -110,7 +117,7 @@ function patchCompile()
         undo();
         var compileFunction = require('vm').compileFunction;
         var pathDirname = require('path').dirname;
-        var createRequire = parentModule.constructor.createRequire;
+        var createRequire = Module.createRequire;
         var compiledWrapper = compileFunction(content, PARAM_NAMES, { filename: filename });
         var dirname = pathDirname(filename);
         var newRequire = createRequire(filename);
@@ -126,7 +133,6 @@ function patchCompile()
 // Module._load.
 function patchLegacyNode()
 {
-    var Module = module.constructor;
     var _load = Module._load;
     Module._load =
     function (request)
@@ -140,10 +146,15 @@ function patchLegacyNode()
 function postrequire(id, stubsOrHook)
 {
     if (typeof id !== 'string' || !id)
-        throw TypeError('First argument must be a non-empty string');
+        throw TypeError('First argument must be a non-empty string, received ' + inspect(id));
     if (stubsOrHook !== undefined && stubsOrHook !== null && stubsOrHook !== Object(stubsOrHook))
-        throw TypeError('Second argument must be an object, a function, undefined or null');
-    var Module = module.constructor;
+    {
+        throw TypeError
+        (
+            'Second argument must be an object, a function, undefined or null, received ' +
+            inspect(stubsOrHook)
+        );
+    }
     var cache = Module._cache;
     var filename = Module._resolveFilename(id, parentModule);
     var cachedModule = cache[filename];
@@ -202,10 +213,7 @@ function postrequire(id, stubsOrHook)
 
     var id = module.id;
     delete require.cache[id];
-    if (parentModule !== undefined)
-        var childModules = parentModule.children;
-    if (childModules === undefined)
-        childModules = [];
+    var childModules = parentModule.children;
     var postrequireModule = findChildModuleById();
     if (postrequireModule)
     {

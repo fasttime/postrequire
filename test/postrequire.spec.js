@@ -2,7 +2,8 @@
 
 'use strict';
 
-var assert = require('assert');
+var assert          = require('assert');
+var childProcess    = require('child_process');
 
 assert.throwsTypeError =
 function (block, expectedErrorMessage)
@@ -174,24 +175,6 @@ describe
                 assert.strictEqual(module.children.length, 2);
                 assert.notStrictEqual(test2, test);
                 assert.deepEqual(test2, { });
-            }
-        );
-
-        it
-        (
-            'loads itself',
-            function ()
-            {
-                var postrequireId = require.resolve(POSTREQUIRE_PATH);
-                var postrequire = require(POSTREQUIRE_PATH);
-                var postrequireModule = module.children[0];
-                require(SOME_MODULE);
-                var postrequire2 = callPostrequire(postrequire, POSTREQUIRE_PATH);
-
-                assert(!(postrequireId in require.cache));
-                assert.strictEqual(module.children.length, 2);
-                assert.strictEqual(module.children[0], postrequireModule);
-                assert.notStrictEqual(postrequire2, postrequire);
             }
         );
 
@@ -752,7 +735,10 @@ describe
                 var postrequire = require(POSTREQUIRE_PATH);
 
                 assert.throwsTypeError
-                (postrequire.bind(null), 'First argument must be a non-empty string');
+                (
+                    postrequire.bind(null),
+                    'First argument must be a non-empty string, received undefined'
+                );
             }
         );
 
@@ -764,7 +750,10 @@ describe
                 var postrequire = require(POSTREQUIRE_PATH);
 
                 assert.throwsTypeError
-                (postrequire.bind(null, ''), 'First argument must be a non-empty string');
+                (
+                    postrequire.bind(null, ''),
+                    'First argument must be a non-empty string, received \'\''
+                );
             }
         );
 
@@ -814,7 +803,88 @@ describe
                 assert.throwsTypeError
                 (
                     postrequire.bind(null, './modules/test', 'foobar'),
-                    'Second argument must be an object, a function, undefined or null'
+                    'Second argument must be an object, a function, undefined or null, received ' +
+                    '\'foobar\''
+                );
+            }
+        );
+
+        describe
+        (
+            'cannot be loaded without a parent module',
+            function ()
+            {
+                var EXPECTED_MESSAGE = 'Failed to load postrequire: no parent module found';
+
+                it
+                (
+                    'with `import`',
+                    function ()
+                    {
+                        var semver = require('semver');
+                        if (!semver.satisfies(process.version, '12 >=12.19 || >=14'))
+                            this.skip();
+                        var promise =
+                        require('./modules/import-postrequire').then
+                        (
+                            function ()
+                            {
+                                assert.fail('Exception not thrown');
+                            },
+                            function (reason)
+                            {
+                                assert.strictEqual(reason.constructor, Error);
+                                assert.strictEqual(reason.message, EXPECTED_MESSAGE);
+                            }
+                        );
+                        return promise;
+                    }
+                );
+
+                it
+                (
+                    'by itself',
+                    function ()
+                    {
+                        var postrequire = require(POSTREQUIRE_PATH);
+                        try
+                        {
+                            callPostrequire(postrequire, POSTREQUIRE_PATH);
+                        }
+                        catch (error)
+                        {
+                            assert.strictEqual(error.constructor, Error);
+                            assert.strictEqual(error.message, EXPECTED_MESSAGE);
+                            return;
+                        }
+                        assert.fail('Exception not thrown');
+                    }
+                );
+
+                it
+                (
+                    'as a main module',
+                    function (done)
+                    {
+                        var postrequireId = require.resolve(POSTREQUIRE_PATH);
+                        var callback =
+                        function (error)
+                        {
+                            try
+                            {
+                                var message = error.message;
+                                assert(typeof message === 'string');
+                                assert(message.indexOf('Error: ' + EXPECTED_MESSAGE + '\n') >= 0);
+                            }
+                            catch (error)
+                            {
+                                done(error);
+                                return;
+                            }
+                            done();
+                        };
+                        childProcess.execFile(process.execPath, [postrequireId], callback);
+                    }
                 );
             }
         );
