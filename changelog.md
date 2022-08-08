@@ -1,3 +1,14 @@
+<a name="v2.0.0"></a>
+## [v2.0.0](https://github.com/fasttime/postrequire/releases/tag/v2.0.0) (2022-08-08)
+
+* Loading postrequire will now fail if no parent module is detected.
+This can happen when any of the following is attempted:
+  * Run postrequire as a main module (e.g. with `node ./postrequire.js`).
+  * Load postrequire with a static or dynamic `import` statement instead of `require`.
+  * Load postrequire with postrequire, or with another similar tool.
+* Switched type declaration file to CommonJS style.
+* Improved error messages.
+
 <a name="v1.1.1"></a>
 ## [v1.1.1](https://github.com/fasttime/postrequire/releases/tag/v1.1.1) (2021-06-24)
 
