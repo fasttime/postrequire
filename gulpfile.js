@@ -34,12 +34,11 @@ task
                 ],
                 envs: 'node',
                 parserOptions: { project: 'tsconfig.json' },
-                rules: { 'spaced-comment': ['error', 'always', { exceptions: ['/'] }] },
             },
             {
                 src: ['gulpfile.js', 'test/modules/import-postrequire.js'],
+                jsVersion: 2020,
                 envs: 'node',
-                parserOptions: { ecmaVersion: 2020 },
             },
         );
     },

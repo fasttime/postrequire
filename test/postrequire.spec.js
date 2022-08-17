@@ -414,16 +414,16 @@ describe
                     assert.strictEqual(Function.prototype.call, 'foo');
                     assert.strictEqual(Function.prototype.apply, 'bar');
                     assert.strictEqual(module.constructor._load, 'baz');
-                    assert.strictEqual(module.__proto__._compile, 42);
+                    assert.strictEqual(module.constructor.prototype._compile, 42);
                 }
                 finally
                 {
                     // eslint-disable-next-line no-extend-native
-                    Function.prototype.call    = hooks.call;
+                    Function.prototype.call                 = hooks.call;
                     // eslint-disable-next-line no-extend-native
-                    Function.prototype.apply   = hooks.apply;
-                    module.constructor._load   = hooks._load;
-                    module.__proto__._compile  = hooks._compile;
+                    Function.prototype.apply                = hooks.apply;
+                    module.constructor._load                = hooks._load;
+                    module.constructor.prototype._compile   = hooks._compile;
                 }
             }
         );
@@ -456,7 +456,7 @@ describe
                 assert.strictEqual(Function.prototype.call, hooks.call);
                 assert.strictEqual(Function.prototype.apply, hooks.apply);
                 assert.strictEqual(module.constructor._load, hooks._load);
-                assert.strictEqual(module.__proto__._compile, hooks._compile);
+                assert.strictEqual(module.constructor.prototype._compile, hooks._compile);
             }
         );
 
@@ -477,7 +477,7 @@ describe
                 assert.strictEqual(Function.prototype.call, hooks.call);
                 assert.strictEqual(Function.prototype.apply, hooks.apply);
                 assert.strictEqual(module.constructor._load, hooks._load);
-                assert.strictEqual(module.__proto__._compile, hooks._compile);
+                assert.strictEqual(module.constructor.prototype._compile, hooks._compile);
             }
         );
 
@@ -498,7 +498,7 @@ describe
                 assert.strictEqual(Function.prototype.call, hooks.call);
                 assert.strictEqual(Function.prototype.apply, hooks.apply);
                 assert.strictEqual(module.constructor._load, hooks._load);
-                assert.strictEqual(module.__proto__._compile, hooks._compile);
+                assert.strictEqual(module.constructor.prototype._compile, hooks._compile);
             }
         );
 

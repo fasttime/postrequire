@@ -3,5 +3,6 @@
 var functionPrototype = Function.prototype;
 functionPrototype.call      = 'foo';
 functionPrototype.apply     = 'bar';
-module.constructor._load    = 'baz';
-module.__proto__._compile   = 42;
+var Module = module.constructor;
+Module._load                = 'baz';
+Module.prototype._compile   = 42;

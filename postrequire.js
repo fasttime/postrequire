@@ -109,7 +109,7 @@ function patchCompile()
 
     if (!PARAM_NAMES)
         PARAM_NAMES = CJS_VAR_NAMES.slice(1);
-    var _Module_prototype = module.__proto__;
+    var _Module_prototype = Module.prototype;
     var _compile = _Module_prototype._compile;
     _Module_prototype._compile =
     function (content, filename)
