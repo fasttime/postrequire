@@ -32,13 +32,13 @@ task
                     '!test/modules/import-postrequire.js',
                     '!test/modules/malformed.js',
                 ],
-                envs: 'node',
-                parserOptions: { project: 'tsconfig.json' },
+                envs:           'node',
+                parserOptions:  { project: 'tsconfig.json' },
             },
             {
-                src: ['gulpfile.js', 'test/modules/import-postrequire.js'],
-                jsVersion: 2020,
-                envs: 'node',
+                src:        ['gulpfile.js', 'test/modules/import-postrequire.js'],
+                jsVersion:  2020,
+                envs:       'node',
             },
         );
     },
@@ -56,8 +56,8 @@ task
             mochaPath,
             ['--check-leaks', 'test/**/*.spec.js'],
             {
-                reporter: ['html', 'text-summary'],
-                useC8Config: false,
+                reporter:       ['html', 'text-summary'],
+                useC8Config:    false,
                 watermarks:
                 {
                     branches:   [90, 100],

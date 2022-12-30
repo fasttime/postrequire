@@ -81,7 +81,8 @@ function patchApplyCall(stubsOrHook)
             var returnValue = applyCall(this, applyCallArgs);
             return returnValue;
         }
-    ).prototype = undefined;
+    )
+    .prototype = undefined;
     (
         _Function_prototype.call =
         function call(thisArg) // eslint-disable-line func-names, no-unused-vars
@@ -89,7 +90,8 @@ function patchApplyCall(stubsOrHook)
             var returnValue = applyCall(this, arguments);
             return returnValue;
         }
-    ).prototype = undefined;
+    )
+    .prototype = undefined;
     return undo;
 }
 
